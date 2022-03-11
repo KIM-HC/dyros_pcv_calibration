@@ -1,0 +1,4 @@
+basic_file: 'simulation/validate_calibration_basic_0.yaml'
+num_section: 1
+sweep_angle: 110.0 # DEGREE
+loop_index: 0
