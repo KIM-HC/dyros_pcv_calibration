@@ -562,6 +562,18 @@ class CalibratePCV():
         with open(self.out_path, 'w') as f:
             yaml.dump(dumper, f)
 
+    def export_data(self):
+        dumper = {}
+        for module in range(4):
+            dumper[module] = {}
+            dumper[module]['angle_error_rad'] = self.angle_error[module]
+            dumper[module]['angle_error_deg'] = self.angle_error[module] * RAD2DEG
+            dumper[module]['steer_point'] =  self.robot_steer_point[module]
+            dumper[module]['wheel_offset'] = self.wheel_offset[module]
+            dumper[module]['wheel_radius'] = self.wheel_radius[module]
+        return dumper
+
+
     def compute_center_of_circle(self, p1, p2, p3):
         if self.three_point_method == 0:
             ## from https://mathbang.net/455

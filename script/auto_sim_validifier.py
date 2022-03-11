@@ -29,6 +29,7 @@ if __name__ == "__main__":
     e_off = 3           # mm
     e_rad = 3           # mm
 
+    out_data = []
 
 
     for iter in range(num_test):
@@ -93,5 +94,12 @@ if __name__ == "__main__":
         
 
         # TODO: compare param and save MSE
+        for module in range(4):
+            pass
 
+
+
+
+
+    # TODO: make mean and std data
 
