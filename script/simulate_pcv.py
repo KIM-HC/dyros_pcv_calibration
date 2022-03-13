@@ -24,14 +24,15 @@ DEG2RAD = math.pi / 180.0
 RAD2DEG = 180.0 / math.pi
 
 class PCVSimulator:
-    def __init__(self, stationary_set, param_set):
+    def __init__(self, stationary_set, param_set, is_validifier=False,
+                 rot_speed=0.4, tot_lap=3.03, del_time=0.01):
         target_1 = (45.0) * DEG2RAD
         target_2 = (45.0 + 120.0) * DEG2RAD
         self.debug_rot = []
-        self.lap = 3.03
+        self.lap = tot_lap
         self.tick = 0
-        self.rot_speed = 0.4  # rad/sec
-        self.sim_dt = 0.01
+        self.rot_speed = rot_speed  # rad/sec
+        self.sim_dt = del_time
         self.gif_interval = 1
         self.gif_repeat = True
         ## for saving gif file
@@ -85,6 +86,7 @@ class PCVSimulator:
         self.file_number = 0
         while(os.path.isfile(self.pkg_path + 'joint' + self.ymd + str(self.file_number) + '.csv')):
             self.file_number += 1
+        if is_validifier: self.file_number = stationary_set
         self.wrdb       = open(self.pkg_path + 'debug' + self.ymd + str(self.file_number) + '.txt', 'w')
         self.joint_open = open(self.pkg_path + 'joint' + self.ymd + str(self.file_number) + '.csv', 'w')
         self.mocap_open = open(self.pkg_path + 'mocap' + self.ymd + str(self.file_number) + '.csv', 'w')
@@ -151,7 +153,7 @@ class PCVSimulator:
                 self.robot_real_steer[self.stationary_set] = deepcopy(self.targets[pt])
             else:
                 d_rs  = np.linalg.norm(self.steer_point[module] - self.robot_rot_point[pt])  # from rot point to steer point
-                d_sw  = self.wheel_offset[module]                           # from steer point to wheel point
+                d_sw  = deepcopy(self.wheel_offset[module])                 # from steer point to wheel point
                 a_srw = abs(math.asin(d_sw/d_rs))                           # angle between line rs and rw
                 v_rs  = self.steer_point[module] - self.robot_rot_point[pt] # vector from rot point to steer point
                 a_rs  = math.atan2(v_rs[1], v_rs[0])                        # angle of vector rs wrt base frame
@@ -165,7 +167,6 @@ class PCVSimulator:
             self.sweep_tick[pt][module] = self.dist_from_rrp[pt][module] * self.rot_speed * self.sim_dt
             self.wheel_rot_tick[pt][module] = self.sweep_tick[pt][module] / self.wheel_radius[module]
             test_wheel_rot = self.dist_from_rrp[pt][module] * test_sweep * math.pi / (180.0 * self.wheel_radius[module])
-            # print('set{0}: {1}'.format(module, test_wheel_rot))
 
     def plot_rot(self):
         self.plt_color = ['y','r','g','b','c','m','k']
@@ -384,14 +385,17 @@ if __name__ == "__main__":
         e_off = 0
         e_rad = 0
 
-    error_point = []
-    for module in range(4):
-        rn = e_pnt * np.random.random_sample(3) - e_pnt/2
-        rn[2] = 0.0
-        error_point.append(rn)
-    error_beta = (e_bet * np.random.random_sample(4) - e_bet/2).tolist()
-    error_offset = (e_off * np.random.random_sample(4) - e_off/2).tolist()
-    error_radius = (e_rad * np.random.random_sample(4) - e_rad/2).tolist()
+    pkg_path = rospkg.RosPack().get_path('pcv_calibration')
+    file_number = 0
+    while(os.path.isfile(pkg_path + '/setting/simulation/simulation_basic_'  + str(file_number) + '.yaml')):
+        file_number += 1
+
+    dumper = {}
+    dumper['loop_index'] = {}
+    dumper['loop_index'][0] = []
+    dumper['is_mocap'] = True
+    dumper['is_simulation'] = True
+    dumper['parameter_file'] = '/setting/output/sim_param_' + str(file_number) + '.yaml'
 
     param_set = {}
     param_set['steer_point']  = [np.array([215,125,0.0]), np.array([215,-125,0.0]),np.array([-215,-125,0.0]),np.array([-215,125,0.0])]
@@ -399,22 +403,18 @@ if __name__ == "__main__":
     param_set['wheel_offset'] = [-20, -20, -20, -20]
     param_set['wheel_radius'] = [ 55,  55,  55,  55]
 
+    error_point = []
+    error_beta = (e_bet * np.random.random_sample(4) - e_bet/2).tolist()
+    error_offset = (e_off * np.random.random_sample(4) - e_off/2).tolist()
+    error_radius = (e_rad * np.random.random_sample(4) - e_rad/2).tolist()
     for module in range(4):
+        rn = e_pnt * np.random.random_sample(3) - e_pnt/2
+        rn[2] = 0.0
+        error_point.append(rn)
         param_set['steer_point'][module]  += error_point[module]
         param_set['beta'][module]         += error_beta[module]
         param_set['wheel_offset'][module] += error_offset[module]
         param_set['wheel_radius'][module] += error_radius[module]
-
-    pkg_path = rospkg.RosPack().get_path('pcv_calibration')
-    file_number = 0
-    while(os.path.isfile(pkg_path + '/setting/simulation/simulation_basic_'  + str(file_number) + '.yaml')):
-        file_number += 1
-    dumper = {}
-    dumper['loop_index'] = {}
-    dumper['loop_index'][0] = []
-    dumper['is_mocap'] = True
-    dumper['is_simulation'] = True
-    dumper['parameter_file'] = '/setting/output/sim_param_' + str(file_number) + '.yaml'
 
     for module in range(4):
         pcv_sim = PCVSimulator(stationary_set=module, param_set=param_set)
@@ -435,7 +435,6 @@ if __name__ == "__main__":
         ddd['wheel_radius'] = param_set['wheel_radius'][module] / 1000.0
 
         param_dumper[module] = ddd
-        
 
     with open(pkg_path + '/setting/output/sim_param_' + str(file_number) + '.yaml', 'w') as f:
         yaml.dump(param_dumper, f)

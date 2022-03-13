@@ -1,0 +1,41 @@
+is_mocap: true
+is_simulation: true
+loop_index:
+  0:
+  - - [0.0, 10.559999999999999]
+    - [11.580000000000007, 22.13999999999991]
+  - - [0.0, 10.559999999999999]
+    - [11.580000000000007, 22.13999999999991]
+  - - [0.0, 10.559999999999999]
+    - [11.580000000000007, 22.13999999999991]
+  - - [0.0, 10.559999999999999]
+    - [11.580000000000007, 22.13999999999991]
+parameter_file: /setting/output/sim_param_0.yaml
+set_0:
+  equal_mv_file: simulation/mocap_2022_03_13_0.csv
+  jt_cali: [0]
+  jt_file: simulation/joint_2022_03_13_0.csv
+  mv_cali: [0]
+  mv_file: simulation/mocap_2022_03_13_0.csv
+  steer_angle: [0.7468483521003327, 2.841243454493528]
+set_1:
+  equal_mv_file: simulation/mocap_2022_03_13_1.csv
+  jt_cali: [0]
+  jt_file: simulation/joint_2022_03_13_1.csv
+  mv_cali: [0]
+  mv_file: simulation/mocap_2022_03_13_1.csv
+  steer_angle: [0.8258363960439987, 2.920231498437194]
+set_2:
+  equal_mv_file: simulation/mocap_2022_03_13_2.csv
+  jt_cali: [0]
+  jt_file: simulation/joint_2022_03_13_2.csv
+  mv_cali: [0]
+  mv_file: simulation/mocap_2022_03_13_2.csv
+  steer_angle: [0.7228568770135346, 2.81725197940673]
+set_3:
+  equal_mv_file: simulation/mocap_2022_03_13_3.csv
+  jt_cali: [0]
+  jt_file: simulation/joint_2022_03_13_3.csv
+  mv_cali: [0]
+  mv_file: simulation/mocap_2022_03_13_3.csv
+  steer_angle: [0.8699741403710268, 2.964369242764222]

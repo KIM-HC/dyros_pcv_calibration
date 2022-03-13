@@ -23,9 +23,9 @@ RAD2DEG = 180.0 / math.pi
 DEG2RAD = math.pi / 180.0
 
 class CalibratePCV():
-    def __init__(self, yaml_path='mocap_25.yaml'):
+    def __init__(self, yaml_path='mocap_25.yaml', is_save_data=True):
         ## reads parameters, paths from yaml
-        print('=== {0} ==='.format(yaml_path))
+        if is_save_data: print('=== {0} ==='.format(yaml_path))
         self.pkg_path = rospkg.RosPack().get_path('pcv_calibration')
         self.out_path = self.pkg_path + '/setting/output/output_' + yaml_path
 
@@ -47,8 +47,8 @@ class CalibratePCV():
         self.error_checker = 0.000001   ## for 3 points on circle
         self.plot_num_ellipse_fit = 0   ## for plotting ellipse fitting
         self.plot_num_p = 0             ## for plotting center in each point's frame - one section
-        self.plot_num_pp = 1            ## for plotting center in each point's frame - all section
-        self.plot_num_centers = 1       ## for plotting all center information
+        self.plot_num_pp = 0            ## for plotting center in each point's frame - all section
+        self.plot_num_centers = 0       ## for plotting all center information
         self.debug_wheel_radius = True
         self.debug_wheel_radius_result = [[],[],[],[]]
         self.debug_wheel_radius_list = []
@@ -58,8 +58,8 @@ class CalibratePCV():
         ## 1: NUMERICALLY STABLE DIRECT LEAST SQUARES FITTING OF ELLIPSES
         ##    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.1.7559&rep=rep1&type=pdf
         ##    https://github.com/bdhammel/least-squares-ellipse-fitting
-        self.circle_fitting_method = 1
-        print('=== CIRCLE FITTING METHOD: {0}'.format(self.circle_fitting_method))
+        self.circle_fitting_method = 0
+        if is_save_data: print('=== CIRCLE FITTING METHOD: {0}'.format(self.circle_fitting_method))
 
         ## 0: plot all sections in each sub_plot
         ## 1: plot all in one
@@ -138,11 +138,10 @@ class CalibratePCV():
             self.steer_delta_theta.append(delta_theta)
             self.angle_phi.append((math.pi - abs(delta_theta)) * 0.5 * abs(delta_theta) / delta_theta)
 
-        self.make_data()
-        self.save_data()
-
-        if self.is_simulation:
-            self.do_sim_checking()
+        self.make_data(is_print=is_save_data)
+        if is_save_data:
+            self.save_data()
+            if self.is_simulation : self.do_sim_checking()
 
         # self.plot_animation(module=3, pt=1, interval=1, plot_what='circle', plot_original=True)
         # self.plot_animation(module=1, pt=0)
@@ -150,7 +149,7 @@ class CalibratePCV():
         # self.plot_data(plot_in_one=True, plot_what='circle')
 
 
-    def make_data(self):
+    def make_data(self, is_print):
         for module in range(4):
             self.eqmv[module] = np.loadtxt(self.eqmv_path[module], delimiter='\t')
             mv_for_time_cali = np.loadtxt(self.mv_path[module], delimiter='\t') ## DONT USE MV
@@ -506,32 +505,33 @@ class CalibratePCV():
                                 self.debug_wheel_radius_result[mv_set][swp] += calc_rad / 6.0
 
         test_mid_point = (self.robot_steer_point[0] + self.robot_steer_point[1] + self.robot_steer_point[2] + self.robot_steer_point[3]) / 4.0
-        print('test mid point: {0}'.format(test_mid_point))
+        if is_print: print('test mid point: {0}'.format(test_mid_point))
         for module in range(4):
-            print('=======\nset_{0}'.format(module))
-            print('cali time: {0}'.format(self.cali_time[module]))
-            for pt in range(2):
-                print('P_{0}: {1}'.format(pt+1, self.robot_rot_point[module][pt]))
-            print('offset b: {0}'.format(self.wheel_offset[module]))
-            print('steer point: {0}'.format(self.robot_steer_point[module]))
-            print('steer point_averaged: {0}'.format(self.robot_steer_point[module] - test_mid_point))
-            print('angle error beta: {0} (radian)'.format(self.angle_error[module]))
-            print('angle error beta: {0} (degree)'.format(self.angle_error[module] * RAD2DEG))
-            print('wheel radius: {0}'.format(self.wheel_radius[module]))
-            if self.debug_wheel_radius:
-                full_ = len(self.debug_wheel_radius_list)
-                half_ = int(full_/2)
-                avg = 0.0
-                for swp in range(full_):
-                    avg += self.debug_wheel_radius_result[module][swp] / full_
-                print('==== sweep angle test ====')
-                print('== sweep angle from {0} to {1} with total {2} angles'.format(
-                    self.debug_wheel_radius_list[0],self.debug_wheel_radius_list[-1],full_))
-                print('==      average:   {0}'.format(avg))
-                print('== min max diff:   {0}'.format(np.max(self.debug_wheel_radius_result[module]) - np.min(self.debug_wheel_radius_result[module])))
-                print('== {1} ~ {2} diff: {0}'.format(np.max(self.debug_wheel_radius_result[module][half_:full_]) - np.min(self.debug_wheel_radius_result[module][half_:full_]),half_,full_))
-                # for swp in range(full_):
-                #     print('{0} DEG: {1}'.format(self.debug_wheel_radius_list[swp], self.debug_wheel_radius_result[module][swp]))
+            if is_print:
+                print('=======\nset_{0}'.format(module))
+                print('cali time: {0}'.format(self.cali_time[module]))
+                for pt in range(2):
+                    print('P_{0}: {1}'.format(pt+1, self.robot_rot_point[module][pt]))
+                print('offset b: {0}'.format(self.wheel_offset[module]))
+                print('steer point: {0}'.format(self.robot_steer_point[module]))
+                print('steer point_averaged: {0}'.format(self.robot_steer_point[module] - test_mid_point))
+                print('angle error beta: {0} (radian)'.format(self.angle_error[module]))
+                print('angle error beta: {0} (degree)'.format(self.angle_error[module] * RAD2DEG))
+                print('wheel radius: {0}'.format(self.wheel_radius[module]))
+                if self.debug_wheel_radius:
+                    full_ = len(self.debug_wheel_radius_list)
+                    half_ = int(full_/2)
+                    avg = 0.0
+                    for swp in range(full_):
+                        avg += self.debug_wheel_radius_result[module][swp] / full_
+                    print('==== sweep angle test ====')
+                    print('== sweep angle from {0} to {1} with total {2} angles'.format(
+                        self.debug_wheel_radius_list[0],self.debug_wheel_radius_list[-1],full_))
+                    print('==      average:   {0}'.format(avg))
+                    print('== min max diff:   {0}'.format(np.max(self.debug_wheel_radius_result[module]) - np.min(self.debug_wheel_radius_result[module])))
+                    print('== {1} ~ {2} diff: {0}'.format(np.max(self.debug_wheel_radius_result[module][half_:full_]) - np.min(self.debug_wheel_radius_result[module][half_:full_]),half_,full_))
+                    # for swp in range(full_):
+                    #     print('{0} DEG: {1}'.format(self.debug_wheel_radius_list[swp], self.debug_wheel_radius_result[module][swp]))
 
     def do_sim_checking(self):
         print('checking proposed method')
@@ -569,7 +569,7 @@ class CalibratePCV():
             dumper[module]['angle_error_rad'] = self.angle_error[module]
             dumper[module]['angle_error_deg'] = self.angle_error[module] * RAD2DEG
             dumper[module]['steer_point'] =  self.robot_steer_point[module]
-            dumper[module]['wheel_offset'] = self.wheel_offset[module]
+            dumper[module]['wheel_offset'] = -self.wheel_offset[module]
             dumper[module]['wheel_radius'] = self.wheel_radius[module]
         return dumper
 
