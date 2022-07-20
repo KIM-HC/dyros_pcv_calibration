@@ -23,7 +23,7 @@ RAD2DEG = 180.0 / math.pi
 DEG2RAD = math.pi / 180.0
 
 class CalibratePCV():
-    def __init__(self, yaml_path='mocap_25.yaml', is_save_data=True):
+    def __init__(self, yaml_path='mocap_24.yaml', is_save_data=True):
         ## reads parameters, paths from yaml
         if is_save_data: print('=== {0} ==='.format(yaml_path))
         self.pkg_path = rospkg.RosPack().get_path('pcv_calibration')
@@ -530,6 +530,10 @@ class CalibratePCV():
                     print('==      average:   {0}'.format(avg))
                     print('== min max diff:   {0}'.format(np.max(self.debug_wheel_radius_result[module]) - np.min(self.debug_wheel_radius_result[module])))
                     print('== {1} ~ {2} diff: {0}'.format(np.max(self.debug_wheel_radius_result[module][half_:full_]) - np.min(self.debug_wheel_radius_result[module][half_:full_]),half_,full_))
+                    print('radius:{0}'.format(self.debug_wheel_radius_result[module]))
+                    print('avg test1:{0}'.format(np.average(self.debug_wheel_radius_result[module])))
+                    print('avg test:{0}'.format(np.average(self.debug_wheel_radius_result[module][half_:full_])))
+                    self.wheel_radius[module] = np.average(self.debug_wheel_radius_result[module][half_:full_])
                     # for swp in range(full_):
                     #     print('{0} DEG: {1}'.format(self.debug_wheel_radius_list[swp], self.debug_wheel_radius_result[module][swp]))
 

@@ -276,7 +276,8 @@ class PCVSimulator:
             ax.set_ylim(self.robot_rot_point[pt][y] - radius, self.robot_rot_point[pt][y] + radius)
             ax.set_aspect('equal')
             ax.invert_xaxis()
-            ax.set_title('animation')
+            ax.axis('off')
+            # ax.set_title('animation')
             ani = FuncAnimation(fig, update, frames=np.linspace(st, ed, ed - st + 1),
                                 interval=self.gif_interval, repeat=self.gif_repeat)
             if self.make_gif:
@@ -419,6 +420,8 @@ if __name__ == "__main__":
     for module in range(4):
         pcv_sim = PCVSimulator(stationary_set=module, param_set=param_set)
         pcv_sim.make_data()
+        pcv_sim.gif_interval = 50
+        pcv_sim.animate_rot()
         dumper['set_{0}'.format(module)], lp_idx = pcv_sim.export_data()
         dumper['loop_index'][0].append(lp_idx)
 

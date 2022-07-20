@@ -20,15 +20,15 @@ if __name__ == "__main__":
     out_data['wheel_offset'] = []
     out_data['wheel_radius'] = []
 
-    ## +- 5%(5DEG) error
-    eae  = 10.0 * DEG2RAD   # rad
-    espx = 21.5             # mm
-    espy = 12.5             # mm
-    ewo  = 2.0              # mm
-    ewr  = 5.5              # mm
+    ## +- err_per% error
+    err_per = 0.6
+    eae  = 60.0  * DEG2RAD # rad
+    espx = 215.0 * err_per # mm
+    espy = 125.0 * err_per # mm
+    ewo  = 20.0  * err_per # mm
+    ewr  = 55.0  * err_per # mm
 
     for iter in range(tot_num_test):
-        if iter % 50 == 0: print('iteration {0}'.format(iter))
         if iter == 0:
             e_pntx = 0
             e_pnty = 0
@@ -95,6 +95,13 @@ if __name__ == "__main__":
             out_data['angle_error'].append(aae)
             out_data['wheel_offset'].append(awo)
             out_data['wheel_radius'].append(awr)
+
+        if iter % 50 == 0:
+            print('iteration {0}'.format(iter))
+            print('MAE steer_point:  {0}'.format(np.average(np.array(out_data['steer_point']))))
+            print('MAE angle_error:  {0}'.format(np.average(np.array(out_data['angle_error']))))
+            print('MAE wheel_offset: {0}'.format(np.average(np.array(out_data['wheel_offset']))))
+            print('MAE wheel_radius: {0}\n'.format(np.average(np.array(out_data['wheel_radius']))))
 
     out_data['steer_point'] = np.array(out_data['steer_point'])
     out_data['angle_error'] = np.array(out_data['angle_error'])
